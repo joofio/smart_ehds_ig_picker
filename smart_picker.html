@@ -24,14 +24,14 @@
           type: "dropdown",
           name: "objective",
           title: "What are you trying to achieve with an IG?",
-          choices: ["Cross-border exchange", "Create a national variation", "Check the base european format"]
+          choices: ["Cross-border exchange", "Create a national variation", "Check the base european format","Check logical models"]
         },
         {
           type: "dropdown",
           name: "context",
           title: "What areas are you working with?",
-          visibleIf: "{objective} notempty",
-          choices: ["Laboratory", "Imaging", "Hospital Discharge Report", "Prescription and/or dispense"]
+          visibleIf: "{objective} !='Check logical models'",
+          choices: ["Laboratory", "Imaging", "Hospital Discharge Report", "Prescription and/or dispense","Patient Summary"]
         },
         {
           type: "dropdown",
@@ -56,10 +56,17 @@
     });
     survey.onComplete.add(function (sender) {
       const d = sender.data;
-      let advice = "No Available IG.";
+      let advice = "No Available HL7 Implementation Guide yet.";
+
+
+      if (d.objective === "Check logical models" ) {
+         advice = "  <a href=\"https://build.fhir.org/ig/Xt-EHR/xt-ehr-common/\">https://build.fhir.org/ig/Xt-EHR/xt-ehr-common/</a>";
+       // if (d.fhir_version === "R4") advice = "No IG yet";
+      }
+      
       if (d.objective === "Check the base european format" && d.context === "Imaging") {
         if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/imaging/\">https://build.fhir.org/ig/hl7-eu/imaging/</a>";
-        if (d.fhir_version === "R4") advice = "No IG yet";
+       // if (d.fhir_version === "R4") advice = "No IG yet";
       }
       if (d.objective === "Check the base european format" && d.context === "Prescription and/or dispense") {
         if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/\">https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/</a>";
