@@ -18,7 +18,7 @@
 
   <script>
     const surveyJson = {
-        completedHtml: "<h3>✅ Thank you! You can check the answer now.</h3>",
+      //    completedHtml: "<h3>✅ Thank you! You can check the answer now.</h3>",
 
       showQuestionNumbers: "off",
       elements: [
@@ -26,14 +26,14 @@
           type: "dropdown",
           name: "objective",
           title: "What are you trying to achieve with an IG?",
-          choices: ["Cross-border exchange", "Create a national variation", "Check the base european format","Check logical models"]
+          choices: ["Cross-border exchange", "Create a national variation", "Check the base european format", "Check logical models"]
         },
         {
           type: "dropdown",
           name: "context",
           title: "What areas are you working with?",
           visibleIf: "{objective} !='Check logical models'  and {objective} notempty",
-          choices: ["Laboratory", "Imaging", "Hospital Discharge Report", "Prescription and/or dispense","Patient Summary"]
+          choices: ["Laboratory", "Imaging", "Hospital Discharge Report", "Prescription and/or dispense", "Patient Summary"]
         },
         {
           type: "dropdown",
@@ -52,6 +52,22 @@
       ]
     };
 
+    const resultTemplate = `
+  <div style="text-align: center; max-width: 600px; margin: 40px auto;">
+    <h2 style="color: #007bff; font-size: 1.8em;">🎯 Recommended Implementation Guide</h2>
+    <p style="font-size: 1.1em; color: #333;">
+        {description}
+    </p>
+    <a href="{link}" target="_blank"
+       style="display: inline-block; padding: 10px 20px; margin-top: 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 6px;">
+      📄 {buttonLabel}
+    </a>
+    <p style="margin-top: 20px; color: #666; font-size: 0.9em;">
+      {note}
+    </p>
+  </div>
+`;
+
     const survey = new Survey.Model(surveyJson);
     document.addEventListener("DOMContentLoaded", function () {
       survey.render(document.getElementById("surveyContainer"));
@@ -59,36 +75,93 @@
     survey.onComplete.add(function (sender) {
       const d = sender.data;
       let advice = "No Available HL7 Implementation Guide yet.";
+      let values = {
+        title: "Recommended IG",
+        description: "No matching context found.",
+        link: "#",
+        buttonLabel: "Try Again",
+        note: "Make sure to select an area."
+      };
 
+      if (d.objective === "Check logical models") {
 
-      if (d.objective === "Check logical models" ) {
-         advice = "  <a href=\"https://build.fhir.org/ig/Xt-EHR/xt-ehr-common/\">https://build.fhir.org/ig/Xt-EHR/xt-ehr-common/</a>";
-       // if (d.fhir_version === "R4") advice = "No IG yet";
+        values = {
+          description: "Based on your selections, we recommend reviewing the EHDS Logical Information Models",
+          link: "https://build.fhir.org/ig/Xt-EHR/xt-ehr-common/",
+          buttonLabel: "Open Logical Models IG",
+          note: "This implementation guide includes logical information models created in Xt-EHR project. These models are the basis for designing the EHDS data exchange format (EEHRxF)."
+        };
       }
-      
+
       if (d.objective === "Check the base european format" && d.context === "Imaging") {
-        if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/imaging/\">https://build.fhir.org/ig/hl7-eu/imaging/</a>";
-       // if (d.fhir_version === "R4") advice = "No IG yet";
+        if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent")
+          values = {
+            description: "Based on your selections, we recommend reviewing the HL7 Europe Imaging Study Report",
+            link: "https://build.fhir.org/ig/hl7-eu/imaging/",
+            buttonLabel: "Open Imaging Study Report IG",
+            note: "This implementation guide specifies imaging study data in the European context, as defined in eHN Imaging Studies and Reports and refined by XtEHR Imaging Logical Model, as a FHIR model."
+          };
+
       }
       if (d.objective === "Check the base european format" && d.context === "Prescription and/or dispense") {
-        if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/\">https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/</a>";
-        if (d.fhir_version === "R4") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/\">https://build.fhir.org/ig/hl7-eu/mpd/</a>";
+        if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent")
+          values = {
+            description: "Based on your selections, we recommend reviewing the HL7 Europe Medication Prescription and Dispense (R5)",
+            link: "https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/",
+            buttonLabel: "Open Medication Prescription and Dispense IG",
+            note: "The scope of this implementation guide is Medication Prescription and Dispense in the European Context. It is coherent with the European eHN Guidelines and preparatory EHDS work."
+          };
+        if (d.fhir_version === "R4")
+          values = {
+            description: "Based on your selections, we recommend reviewing the HL7 Europe Medication Prescription and Dispense (R4)",
+            link: "https://build.fhir.org/ig/hl7-eu/mpd/",
+            buttonLabel: "Open Medication Prescription and Dispense IG",
+            note: "The scope of this implementation guide is Medication Prescription and Dispense in the European Context. It is coherent with the European eHN Guidelines and preparatory EHDS work."
+          };
       }
       if (d.objective === "Check the base european format" && d.context === "Laboratory") {
         if (d.released == "Stable") {
-         // if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/\">https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/</a>";
-          if (d.fhir_version === "R4") advice = "  <a href=\"https://hl7.eu/fhir/laboratory/\">https://hl7.eu/fhir/laboratory/</a>";
+          // if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/\">https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/</a>";
+          if (d.fhir_version === "R4")
+            values = {
+              description: "Based on your selections, we recommend reviewing the HL7 Europe Laboratory Report (R4)",
+              link: "https://hl7.eu/fhir/laboratory/",
+              buttonLabel: "Open HL7 Europe Laboratory Report IG",
+              note: "Clinical laboratory results play an important role in diagnosis, treatment, and follow-up of patients. The availability of high quality test results, and the capacity of sharing them, is therefore essential being often the basis for clinical decision making. For this reason the Laboratory has been selected as one of the priority domains for the European EHR eXchange Format (E-EHRxF)."
+            };
         }
         if (d.released == "Development") {
-        //  if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/\">https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/</a>";
-          if (d.fhir_version === "R4") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/laboratory/\">https://build.fhir.org/ig/hl7-eu/laboratory/</a>";
+          //  if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/\">https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/</a>";
+          if (d.fhir_version === "R4")
+            values = {
+              description: "Based on your selections, we recommend reviewing the HL7 Europe Laboratory Report (R4)",
+              link: "https://build.fhir.org/ig/hl7-eu/laboratory/",
+              buttonLabel: "Open HL7 Europe Laboratory Report IG (development)",
+              note: "Clinical laboratory results play an important role in diagnosis, treatment, and follow-up of patients. The availability of high quality test results, and the capacity of sharing them, is therefore essential being often the basis for clinical decision making. For this reason the Laboratory has been selected as one of the priority domains for the European EHR eXchange Format (E-EHRxF)."
+            };
         }
       }
       if (d.objective === "Check the base european format" && d.context === "Hospital Discharge Report") {
         //if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/\">https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/</a>";
-        if (d.fhir_version === "R4") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/hdr/\">https://build.fhir.org/ig/hl7-eu/hdr/</a>";
+        if (d.fhir_version === "R4")
+          values = {
+            description: "Based on your selections, we recommend reviewing the HL7 Europe Hospital Discharge Report (R4)",
+            link: "https://build.fhir.org/ig/hl7-eu/hdr/",
+            buttonLabel: "Open HL7 Europe Hospital Discharge Report (development)",
+            note: "Specify a set of rules to be applied to HL7 FHIR to define how to represent a Hospital Discharge Report in the European Context, coherently with the European eHN Guidelines (see the European eHealth - Key documents )."
+          };
       }
-      document.getElementById("result").innerHTML = "Result: " + advice;
+
+      //document.getElementById("result").innerHTML = "Result: " + advice;
+      // Replace placeholders
+      const filledHtml = resultTemplate
+        .replace("{description}", values.description)
+        .replace("{link}", values.link)
+        .replace("{buttonLabel}", values.buttonLabel)
+        .replace("{note}", values.note);
+
+      // Inject the final result
+      survey.completedHtml = filledHtml;
     });
   </script>
 </body>
