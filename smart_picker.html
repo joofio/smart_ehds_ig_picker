@@ -30,7 +30,7 @@
           type: "dropdown",
           name: "context",
           title: "What areas are you working with?",
-          visibleIf: "{objective} !='Check logical models'",
+          visibleIf: "{objective} !='Check logical models'  and {objective} notempty",
           choices: ["Laboratory", "Imaging", "Hospital Discharge Report", "Prescription and/or dispense","Patient Summary"]
         },
         {
