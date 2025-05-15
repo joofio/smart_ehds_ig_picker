@@ -43,7 +43,7 @@
         {
           type: "dropdown",
           name: "released",
-          visibleIf: "{fhir_version} notempty",
+          visibleIf: "{fhir_version} == 'R4' and {context} =='Laboratory'",
           title: "Do you want the stable version or in development?",
           choices: ["Stable", "Development"]
         }
