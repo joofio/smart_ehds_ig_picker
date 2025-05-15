@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Smart EHDS Picker</title>
+  <link href="https://unpkg.com/survey-core/survey-core.min.css" type="text/css" rel="stylesheet">
+  <script type="text/javascript" src="https://unpkg.com/survey-core/survey.core.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/survey-js-ui/survey-js-ui.min.js"></script>
+  <!-- ... -->
+</head>
+
+<body style="font-family: sans-serif; padding: 20px;">
+
+  <h2>Smart EHDS HL7 IG Picker</h2>
+  <div id="surveyContainer"></div>
+  <div id="result" style="margin-top: 20px; font-weight: bold;"></div>
+
+  <script>
+    const surveyJson = {
+      showQuestionNumbers: "off",
+      elements: [
+        {
+          type: "dropdown",
+          name: "objective",
+          title: "What are you trying to achieve with an IG?",
+          choices: ["Cross-border exchange", "Create a national variation", "Check the base european format"]
+        },
+        {
+          type: "dropdown",
+          name: "context",
+          title: "What areas are you working with?",
+          visibleIf: "{objective} notempty",
+          choices: ["Laboratory", "Imaging", "Hospital Discharge Report", "Prescription and/or dispense"]
+        },
+        {
+          type: "dropdown",
+          name: "fhir_version",
+          visibleIf: "{context} notempty",
+          title: "What HL7 FHIR version are you working with?",
+          choices: ["R4", "R5", "Don't Care, give me the most recent"]
+        },
+        {
+          type: "dropdown",
+          name: "released",
+          visibleIf: "{fhir_version} notempty",
+          title: "Do you want the stable version or in development?",
+          choices: ["Stable", "Development"]
+        }
+      ]
+    };
+
+    const survey = new Survey.Model(surveyJson);
+    document.addEventListener("DOMContentLoaded", function () {
+      survey.render(document.getElementById("surveyContainer"));
+    });
+    survey.onComplete.add(function (sender) {
+      const d = sender.data;
+      let advice = "No Available IG.";
+      if (d.objective === "Check the base european format" && d.context === "Imaging") {
+        if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/imaging/\">https://build.fhir.org/ig/hl7-eu/imaging/</a>";
+        if (d.fhir_version === "R4") advice = "No IG yet";
+      }
+      if (d.objective === "Check the base european format" && d.context === "Prescription and/or dispense") {
+        if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/\">https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/</a>";
+        if (d.fhir_version === "R4") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/\">https://build.fhir.org/ig/hl7-eu/mpd/</a>";
+      }
+      if (d.objective === "Check the base european format" && d.context === "Laboratory") {
+        if (d.released == "Stable") {
+         // if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/\">https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/</a>";
+          if (d.fhir_version === "R4") advice = "  <a href=\"https://hl7.eu/fhir/laboratory/\">https://hl7.eu/fhir/laboratory/</a>";
+        }
+        if (d.released == "Development") {
+        //  if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/\">https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/</a>";
+          if (d.fhir_version === "R4") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/laboratory/\">https://build.fhir.org/ig/hl7-eu/laboratory/</a>";
+        }
+      }
+      if (d.objective === "Check the base european format" && d.context === "Hospital Discharge Report") {
+        //if (d.fhir_version === "R5" || d.fhir_version === "Don't Care, give me the most recent") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/\">https://build.fhir.org/ig/hl7-eu/mpd/branches/r5/</a>";
+        if (d.fhir_version === "R4") advice = "  <a href=\"https://build.fhir.org/ig/hl7-eu/hdr/\">https://build.fhir.org/ig/hl7-eu/hdr/</a>";
+      }
+      document.getElementById("result").innerHTML = "Result: " + advice;
+    });
+  </script>
+</body>
+
+</html>
